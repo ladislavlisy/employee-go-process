@@ -1,0 +1,92 @@
+FORMAT: 1A
+HOST: http://polls.apiblueprint.org/
+
+# Emploee Process
+
+Emploee Process is a simple API allowing consumers to calculate payroll.
+
+## Process Collection [/processes]
+
+### List All Employee Processes [GET]
+
+List all employee's processes in current period
+
++ Response 200 (application/json)
+
+        [
+            {
+                "period" : 201701,
+                "employee" : {
+                    "first-name" : "alfred",
+                    "last-name" : "bob",
+                    "personal-number" : "A01",
+                    "contract-number" : "1",
+                    "contract-code" : "1",
+                    "contract-start-date" : "2017-01-01",
+                    "contract-end-date" : "",
+                    "department-code" : "D01",
+                    "cost-center-code" : "CC01",
+                    "full-name" : "alfred bob",
+                    "contract-name" : "Employment",
+                    "department-name" : "Main",
+                    "cost-center-name" : "Development"
+                }
+            }
+        ]
+
+### Start Employee Process [POST]
+
+You can create a new employee process with this action. It takes 
+information about employee and payroll period and will set up 
+a new process. The process will reset all period data for employee
+and create new data from input.
+
++ Request (application/json)
+
+        {
+            "period" : 201701,
+            "employee" : {
+                "first-name" : "alfred",
+                "last-name" : "bob",
+                "personal-number" : "A01",
+                "contract-number" : "1",
+                "contract-code" : "1",
+                "contract-start-date" : "2017-01-01",
+                "contract-end-date" : "",
+                "department-code" : "D01",
+                "cost-center-code" : "CC01",
+                "full-name" : "alfred bob",
+                "contract-name" : "Employment",
+                "department-name" : "Main",
+                "cost-center-name" : "Development"
+            }   
+        }
+
++ Response 201 (application/json)
+
+    + Headers
+
+            Location: /process/5a003b78-409e-b456-a6f0dcee05bd
+
+    + Body
+
+            {
+                "id": "5a003b78-409e-b456-a6f0dcee05bd",
+                "started_at": "2015-08-05T08:40:51.620Z",
+                "period" : 201701,
+                "employee": {
+                    "first-name" : "alfred",
+                    "last-name" : "bob",
+                    "personal-number" : "A01",
+                    "contract-number" : "1",
+                    "contract-code" : "1",
+                    "contract-start-date" : "2017-01-01",
+                    "contract-end-date" : "",
+                    "department-code" : "D01",
+                    "cost-center-code" : "CC01",
+                    "full-name" : "alfred bob",
+                    "contract-name" : "Employment",
+                    "department-name" : "Main",
+                    "cost-center-name" : "Development"
+                }   
+            }

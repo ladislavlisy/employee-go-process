@@ -1,10 +1,98 @@
 FORMAT: 1A
 HOST: http://polls.apiblueprint.org/
 
-# Emploee Process
+# Employee Process
 
 Emploee Process is a simple API allowing consumers to calculate payroll.
 
+## Payroll Run Collection [/payrollruns]
+
+### List all Payroll Runs [GET] 
+
++ Response 200 (application/json)
+
+        [
+            {
+                "code" : 20170101,
+                "year" : 2017,
+                "month" : 1,
+                "seq" : 1,
+                "start_day" : "2017-01-01",
+                "end_day" : "2017-01-31",
+                "current" : "true"
+            },
+            {
+                "code" : 20161201,
+                "year" : 2016,
+                "month" : 12,
+                "seq" : 1,
+                "start_day" : "2016-12-01",
+                "end_day" : "2016-12-31",
+                "current" : "false"
+            }
+        ]
+            
+### Start Payroll Run [POST]
+
+You can create a new payroll run with this action. It takes 
+information about payroll period and will set up 
+a new payroll run. 
+
++ Request (application/json)
+
+        {
+            "year" : 2017,
+            "month" : 1,
+            "seq" : 1,
+            "start_day" : "2017-01-01",
+            "end_day" : "2017-01-31",
+            "current" : "true"
+        }
+        
++ Response 201 (application/json)
+
+    + Headers
+
+            Location: /payrollrun/20170101
+
+    + Body
+
+            {
+                "code" : 20170101,
+                "year" : 2017,
+                "month" : 1,
+                "seq" : 1,
+                "start_day" : "2017-01-01",
+                "end_day" : "2017-01-31",
+                "current" : "true"
+            }
+
+## Payroll Run Status [/payrollruns/{payrollrun_code}]
+
+Use the Payroll Run status resource to interrogate various aspects of an individual Payroll Run.
+
++ Parameters
+
+    + payrollrun_code: `20170101` (string) - The id of the Payroll Run.
+
+            
+### Get Payroll Run Details [GET]
+
+Query the details of an ongoing match.
+
++ Response 200 (application/json)
+
+        {
+            "code" : 20170101,
+            "year" : 2017,
+            "month" : 1,
+            "seq" : 1,
+            "start_day" : "2017-01-01",
+            "end_day" : "2017-01-31",
+            "current" : "true"
+        }
+        
+            
 ## Process Collection [/processes]
 
 ### List All Employee Processes [GET]
@@ -15,21 +103,21 @@ List all employee's processes in current period
 
         [
             {
-                "period" : 201701,
+                "payroll_run" : 20170101,
                 "employee" : {
-                    "first-name" : "alfred",
-                    "last-name" : "bob",
-                    "personal-number" : "A01",
-                    "contract-number" : "1",
-                    "contract-code" : "1",
-                    "contract-start-date" : "2017-01-01",
-                    "contract-end-date" : "",
-                    "department-code" : "D01",
-                    "cost-center-code" : "CC01",
-                    "full-name" : "alfred bob",
-                    "contract-name" : "Employment",
-                    "department-name" : "Main",
-                    "cost-center-name" : "Development"
+                    "first_name" : "alfred",
+                    "last_name" : "bob",
+                    "personal_number" : "A01",
+                    "contract_number" : "1",
+                    "contract_code" : "1",
+                    "contract_start_date" : "2017-01-01",
+                    "contract_end_date" : "",
+                    "department_code" : "D01",
+                    "cost_center_code" : "CC01",
+                    "full_name" : "alfred bob",
+                    "contract_name" : "Employment",
+                    "department_name" : "Main",
+                    "cost_center_name" : "Development"
                 }
             }
         ]
@@ -44,21 +132,21 @@ and create new data from input.
 + Request (application/json)
 
         {
-            "period" : 201701,
+            "payroll_run" : 20170101,
             "employee" : {
-                "first-name" : "alfred",
-                "last-name" : "bob",
-                "personal-number" : "A01",
-                "contract-number" : "1",
-                "contract-code" : "1",
-                "contract-start-date" : "2017-01-01",
-                "contract-end-date" : "",
-                "department-code" : "D01",
-                "cost-center-code" : "CC01",
-                "full-name" : "alfred bob",
-                "contract-name" : "Employment",
-                "department-name" : "Main",
-                "cost-center-name" : "Development"
+                "first_name" : "alfred",
+                "last_name" : "bob",
+                "personal_number" : "A01",
+                "contract_number" : "1",
+                "contract_code" : "1",
+                "contract_start_date" : "2017-01-01",
+                "contract_end_date" : "",
+                "department_code" : "D01",
+                "cost_center_code" : "CC01",
+                "full_name" : "alfred bob",
+                "contract_name" : "Employment",
+                "department_name" : "Main",
+                "cost_center_name" : "Development"
             }   
         }
 
@@ -73,20 +161,20 @@ and create new data from input.
             {
                 "id": "5a003b78-409e-b456-a6f0dcee05bd",
                 "started_at": "2015-08-05T08:40:51.620Z",
-                "period" : 201701,
+                "payroll_run" : 20170101,
                 "employee": {
-                    "first-name" : "alfred",
-                    "last-name" : "bob",
-                    "personal-number" : "A01",
-                    "contract-number" : "1",
-                    "contract-code" : "1",
-                    "contract-start-date" : "2017-01-01",
-                    "contract-end-date" : "",
-                    "department-code" : "D01",
-                    "cost-center-code" : "CC01",
-                    "full-name" : "alfred bob",
-                    "contract-name" : "Employment",
-                    "department-name" : "Main",
-                    "cost-center-name" : "Development"
-                }   
+                    "first_name" : "alfred",
+                    "last_name" : "bob",
+                    "personal_number" : "A01",
+                    "contract_number" : "1",
+                    "contract_code" : "1",
+                    "contract_start_date" : "2017-01-01",
+                    "contract_end_date" : "",
+                    "department_code" : "D01",
+                    "cost_center_code" : "CC01",
+                    "full_name" : "alfred bob",
+                    "contract_name" : "Employment",
+                    "department_name" : "Main",
+                    "cost_center_name" : "Development"
+                } 
             }

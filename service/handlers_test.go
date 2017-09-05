@@ -41,13 +41,13 @@ func TestCreatePayrollRun(t *testing.T) {
 
 	req, err := http.NewRequest("POST", server.URL, bytes.NewBuffer(body))
 	if err != nil {
-		t.Errorf("Error in creating POST request for createMatchHandler: %v", err)
+		t.Errorf("Error in creating POST request for createPayrollRunHandler: %v", err)
 	}
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := client.Do(req)
 	if err != nil {
-		t.Errorf("Error in POST to createMatchHandler: %v", err)
+		t.Errorf("Error in POST to createPayrollRunHandler: %v", err)
 	}
 
 	defer res.Body.Close()

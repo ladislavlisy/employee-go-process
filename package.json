@@ -1,0 +1,17 @@
+{
+    "name": "employee-go-process",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+      "build": "go build",
+      "start": "./employee-go-process",
+      "exec": "go build && ./employee-go-process",
+      "docker-start": "./startdocker",
+      "docker-build-local": "./buildlocal",
+      "docker-exec-local": "./runlocal"      
+    },
+    "author": "Ladislav Lisy",
+    "license": "MIT",
+    "dependencies": {}
+  }
+  

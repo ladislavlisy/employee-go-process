@@ -1,0 +1,3 @@
+package: github.com/ladislavlisy/example-go-pipeline
+import:
+- package: github.com/olekukonko/tablewriter

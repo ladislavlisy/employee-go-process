@@ -7,31 +7,6 @@ Emploee Process is a simple API allowing consumers to calculate payroll.
 
 ## Payroll Run Collection [/payrollruns]
 
-### List all Payroll Runs [GET] 
-
-+ Response 200 (application/json)
-
-        [
-            {
-                "code" : 20170101,
-                "year" : 2017,
-                "month" : 1,
-                "seq" : 1,
-                "start_day" : "2017-01-01",
-                "end_day" : "2017-01-31",
-                "current" : "true"
-            },
-            {
-                "code" : 20161201,
-                "year" : 2016,
-                "month" : 12,
-                "seq" : 1,
-                "start_day" : "2016-12-01",
-                "end_day" : "2016-12-31",
-                "current" : "false"
-            }
-        ]
-            
 ### Start Payroll Run [POST]
 
 You can create a new payroll run with this action. It takes 
@@ -46,14 +21,15 @@ a new payroll run.
             "seq" : 1,
             "start_day" : "2017-01-01",
             "end_day" : "2017-01-31",
-            "current" : "true"
-        }
+            "current" : "true",
+            "period_name" : "January 2017"
+    }
         
 + Response 201 (application/json)
 
     + Headers
     
-            Location: /payrollruns/20170101
+            Content-Location: /payrollruns/20170101
             
     + Body
     
@@ -64,16 +40,53 @@ a new payroll run.
                 "seq" : 1,
                 "start_day" : "2017-01-01",
                 "end_day" : "2017-01-31",
-                "current" : "true"
+                "current" : "true",
+                "period_name" : "January 2017"
             }
 
-## Payroll Run Status [/payrollruns/{payrollrun_code}]
++ Response 400 (application/json)
 
-Use the Payroll Run status resource to interrogate various aspects of an individual Payroll Run.
+        {
+            "error" : 200,
+            "description" : "Invalid input data."
+        }
+
+### List all Payroll Runs [GET] 
+
++ Response 200 (application/json)
+
+        [
+            {
+                "code" : 20170101,
+                "year" : 2017,
+                "month" : 1,
+                "seq" : 1,
+                "start_day" : "2017-01-01",
+                "end_day" : "2017-01-31",
+                "current" : "true",
+                "period_name" : "January 2017"
+
+            },
+            {
+                "code" : 20161201,
+                "year" : 2016,
+                "month" : 12,
+                "seq" : 1,
+                "start_day" : "2016-12-01",
+                "end_day" : "2016-12-31",
+                "current" : "false",
+                "period_name" : "December 2016"
+            }
+        ]
+            
+
+## Payroll Run Detail [/payrollruns/{code}]
+
+Use the Payroll Run Detail resource to interrogate various aspects of an individual Payroll Run.
 
 + Parameters
 
-    + payrollrun_code: `20170101` (string) - The id of the Payroll Run.
+    + code: `20170101` (string) - The code of the Payroll Run.
 
             
 ### Get Payroll Run Details [GET]
@@ -89,38 +102,19 @@ Query the details of an ongoing match.
             "seq" : 1,
             "start_day" : "2017-01-01",
             "end_day" : "2017-01-31",
-            "current" : "true"
+            "current" : "true",
+            "period_name" : "January 2017"
         }
         
             
-## Process Collection [/processes]
++ Response 400 (application/json)
 
-### List All Employee Processes [GET]
+        {
+            "error" : 200,
+            "description" : "Bad input parameter."
+        }
 
-List all employee's processes in current period
-
-+ Response 200 (application/json)
-
-        [
-            {
-                "payroll_run" : 20170101,
-                "employee" : {
-                    "first_name" : "alfred",
-                    "last_name" : "bob",
-                    "personal_number" : "A01",
-                    "contract_number" : "1",
-                    "contract_code" : "1",
-                    "contract_start_date" : "2017-01-01",
-                    "contract_end_date" : "",
-                    "department_code" : "D01",
-                    "cost_center_code" : "CC01",
-                    "full_name" : "alfred bob",
-                    "contract_name" : "Employment",
-                    "department_name" : "Main",
-                    "cost_center_name" : "Development"
-                }
-            }
-        ]
+## Employee Process Collection [/processes]
 
 ### Start Employee Process [POST]
 
@@ -132,7 +126,7 @@ and create new data from input.
 + Request (application/json)
 
         {
-            "payroll_run" : 20170101,
+            "payrollrun_code" : 20170101,
             "employee" : {
                 "first_name" : "alfred",
                 "last_name" : "bob",
@@ -154,14 +148,23 @@ and create new data from input.
 
     + Headers
     
-            Location: /processes/5a003b78-409e-b456-a6f0dcee05bd
+            Content-Location: /processes/5a003b78-409e-b456-a6f0dcee05bd
     
     + Body
     
             {
                 "id": "5a003b78-409e-b456-a6f0dcee05bd",
                 "started_at": "2015-08-05T08:40:51.620Z",
-                "payroll_run" : 20170101,
+                "payrollrun_code" : {
+                    "code" : 20170101,
+                    "year" : 2017,
+                    "month" : 1,
+                    "seq" : 1,
+                    "start_day" : "2017-01-01",
+                    "end_day" : "2017-01-31",
+                    "current" : "true",
+                    "period_name" : "January 2017"
+                },
                 "employee": {
                     "first_name" : "alfred",
                     "last_name" : "bob",
@@ -178,3 +181,47 @@ and create new data from input.
                     "cost_center_name" : "Development"
                 } 
             }
+            
+## Employee Process Detail [/processes/{code}]
+
++ Parameters
+
+    + code: `201701` (string) - The code of the Payroll Period.
+            
+### List All Employee Processes [GET]
+
+List all employee's processes in particular period
+
++ Response 200 (application/json)
+
+        [
+            {
+                "id": "5a003b78-409e-b456-a6f0dcee05bd",
+                "started_at": "2015-08-05T08:40:51.620Z",
+                "payrollrun_code" : {
+                    "code" : 20170101,
+                    "year" : 2017,
+                    "month" : 1,
+                    "seq" : 1,
+                    "start_day" : "2017-01-01",
+                    "end_day" : "2017-01-31",
+                    "current" : "true",
+                    "period_name" : "January 2017"
+                },
+                "employee" : {
+                    "first_name" : "alfred",
+                    "last_name" : "bob",
+                    "personal_number" : "A01",
+                    "contract_number" : "1",
+                    "contract_code" : "1",
+                    "contract_start_date" : "2017-01-01",
+                    "contract_end_date" : "",
+                    "department_code" : "D01",
+                    "cost_center_code" : "CC01",
+                    "full_name" : "alfred bob",
+                    "contract_name" : "Employment",
+                    "department_name" : "Main",
+                    "cost_center_name" : "Development"
+                }
+            }
+        ]

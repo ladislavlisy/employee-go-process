@@ -3,11 +3,11 @@ package service
 import (
 	"testing"
 
-	"github.com/cloudnativego/gogo-engine"
+	payroll "github.com/ladislavlisy/employee-go-process/payroll"
 )
 
 func TestAddMatchShowsUpInRepository(t *testing.T) {
-	match := gogo.NewMatch(19, "bob", "alfred")
+	match := payroll.NewPayrollRun(19, "bob", "alfred")
 
 	repo := newInMemoryRepository()
 	err := repo.addMatch(match)

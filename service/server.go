@@ -8,7 +8,7 @@ import (
 	"github.com/unrolled/render"
 )
 
-// New server configures and returns a Server
+// NewServer configures and returns a Server
 func NewServer() *negroni.Negroni {
 
 	formatter := render.New(render.Options{

@@ -37,7 +37,14 @@ func TestCreatePayrollRun(t *testing.T) {
 	// "current" : "true",
 	// "period_name" : "January 2017"
 
-	body := []byte("{\n  \"code\": 20170101,\n  \"year\": 2017,\n  \"month\": 1,\n  \"seq\": 1,\n  \"start_day\": \"2017-01-01\",\n  \"end_day\": \"2017-01-31\",\n  \"current\": \"true\",\n  \"period_name\": \"January 2017\"\n}")
+	body := []byte("{\n  \"code\": 20170101," +
+		"\n  \"year\": 2017," +
+		"\n  \"month\": 1," +
+		"\n  \"seq\": 1," +
+		"\n	 \"start_day\": \"2017-01-01\"," +
+		"\n  \"end_day\": \"2017-01-31\"," +
+		"\n  \"current\": true," +
+		"\n  \"period_name\": \"January 2017\"\n}")
 
 	req, err := http.NewRequest("POST", server.URL, bytes.NewBuffer(body))
 	if err != nil {

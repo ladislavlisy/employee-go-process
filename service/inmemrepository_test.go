@@ -1,95 +1,103 @@
 package service
 
 import (
+	"strconv"
 	"testing"
 
 	payroll "github.com/ladislavlisy/employee-go-process/payroll"
 )
 
-func TestAddMatchShowsUpInRepository(t *testing.T) {
-	match := payroll.NewPayrollRun(19, "bob", "alfred")
+func TestAddPayrollRunsShowsUpInRepository(t *testing.T) {
+	payrollRun := payroll.NewPayrollRun(2017, 1, 1, "2017-01-01", "2017-01-31", true)
 
 	repo := newInMemoryRepository()
-	err := repo.addMatch(match)
+	err := repo.addPayrollRun(payrollRun)
 	if err != nil {
-		t.Error("Got an error adding a match to repository, should not have.")
+		t.Error("Got an error adding a payroll run to repository, should not have.")
 	}
 
-	matches, err := repo.getMatches()
+	payrollRuns, err := repo.getPayrollRuns()
 	if err != nil {
-		t.Errorf("Unexpected error in getMatches(): %s", err)
+		t.Errorf("Unexpected error in getPayrollRuns(): %s", err)
 	}
-	if len(matches) != 1 {
-		t.Errorf("Expected to have 1 match in the repository, got %d", len(matches))
+	if len(payrollRuns) != 1 {
+		t.Errorf("Expected to have 1 payroll run in the repository, got %d", len(payrollRuns))
 	}
 
-	if matches[0].PlayerBlack != "bob" {
-		t.Errorf("Player 1's name should have been bob, got %s", matches[0].PlayerBlack)
+	if payrollRuns[0].Year != 2017 {
+		t.Errorf("Year should have been 2017, got %d", payrollRuns[0].Year)
 	}
-	if matches[0].PlayerWhite != "alfred" {
-		t.Errorf("Player 2's name should have been alfred, got %s", matches[0].PlayerWhite)
+	if payrollRuns[0].Month != 1 {
+		t.Errorf("Month should have been 1, got %d", payrollRuns[0].Month)
+	}
+	if payrollRuns[0].Seq != 1 {
+		t.Errorf("Sequence should have been 1, got %d", payrollRuns[0].Seq)
 	}
 }
 
-func TestGetMatchRetrievesProperMatch(t *testing.T) {
-	match := gogo.NewMatch(19, "bob", "alfred")
+func TestGetPayrollRunRetrievesProperPayrollRun(t *testing.T) {
+	payrollRun := payroll.NewPayrollRun(2017, 1, 1, "2017-01-01", "2017-01-31", true)
 
 	repo := newInMemoryRepository()
-	err := repo.addMatch(match)
+	err := repo.addPayrollRun(payrollRun)
 	if err != nil {
 		t.Error("Got an error adding a match to repository, should not have.")
 	}
 
-	target, err := repo.getMatch(match.ID)
+	strCode := strconv.Itoa(int(payrollRun.Code))
+
+	target, err := repo.getPayrollRun(strCode)
 	if err != nil {
 		t.Errorf("Got an error when retrieving match from repo instead of success. Err: %s", err.Error())
 	}
 
-	if target.GridSize != 19 {
-		t.Errorf("Got the wrong gridsize. Expected 19, got %d", target.GridSize)
+	if target.StartDay != payroll.NewDate(2017, 1, 1) {
+		t.Errorf("Got the wrong start day. Expected 2017-01-01, got %s", target.StartDay.Format("2006-01-02"))
 	}
 }
 
 func TestNewRepositoryIsEmpty(t *testing.T) {
 	repo := newInMemoryRepository()
 
-	matches, err := repo.getMatches()
+	payrollRuns, err := repo.getPayrollRuns()
 	if err != nil {
-		t.Errorf("Unexpected error in getMatches(): %s", err)
+		t.Errorf("Unexpected error in getPayrollRuns(): %s", err)
 	}
-	if len(matches) != 0 {
-		t.Errorf("Expected to have 0 matches in newly created repository, got %d", len(matches))
+	if len(payrollRuns) != 0 {
+		t.Errorf("Expected to have 0 payroll run in the repository, got %d", len(payrollRuns))
 	}
 }
 
-func TestUpdateMatch(t *testing.T) {
-	redHerring := gogo.NewMatch(13, "buckshank", "d'squarius")
-	match := gogo.NewMatch(19, "bob", "alfred")
+func TestUpdatePayrollRun(t *testing.T) {
+	payrollTmp := payroll.NewPayrollRun(2016, 1, 1, "2016-01-01", "2016-01-31", false)
+	payrollRun := payroll.NewPayrollRun(2017, 1, 1, "2017-01-01", "2017-01-31", true)
 
 	repo := newInMemoryRepository()
-	err := repo.addMatch(redHerring)
+	err := repo.addPayrollRun(payrollTmp)
 	if err != nil {
-		t.Errorf("Error adding match: %s", err)
+		t.Errorf("Error adding payroll run: %s", err)
 	}
-	err = repo.addMatch(match)
+	err = repo.addPayrollRun(payrollRun)
 	if err != nil {
-		t.Errorf("Error adding match: %s", err)
+		t.Errorf("Error adding payroll run: %s", err)
 	}
 
-	match.TurnCount = 37
-	err = repo.updateMatch(match.ID, match)
+	strCode := strconv.Itoa(int(payrollRun.Code))
+
+	payrollRun.PeriodName = "Xanuary 2017"
+	err = repo.updatePayrollRun(strCode, payrollRun)
 	if err != nil {
-		t.Errorf("Error updating match: %s", err)
+		t.Errorf("Error updating payroll run: %s", err)
 	}
 
-	found, err := repo.getMatch(match.ID)
+	found, err := repo.getPayrollRun(strCode)
 	if err != nil {
-		t.Errorf("Error retrieving updated match: %s", err)
+		t.Errorf("Error retrieving updated payroll run: %s", err)
 	}
-	if found.GridSize != match.GridSize || found.PlayerWhite != match.PlayerWhite {
-		t.Errorf("Retrieved incorrect match:\nexpected %+v\nreceived %+v", match, found)
+	if found.Year != payrollRun.Year || found.Month != payrollRun.Month || found.Seq != payrollRun.Seq {
+		t.Errorf("Retrieved incorrect payroll run:\nexpected %+v\nreceived %+v", payrollRun, found)
 	}
-	if found.TurnCount != 37 {
-		t.Errorf("Update failed: expected %d; received %d", 37, found.TurnCount)
+	if found.PeriodName != "Xanuary 2017" {
+		t.Errorf("Update failed: expected %s; received %s", "Xanuary 2017", found.PeriodName)
 	}
 }

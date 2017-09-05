@@ -18,7 +18,7 @@ func createPayrollRunHandler(formatter *render.Render, repo payrollRunRepository
 		var newPayrollRunRequest newPayrollRunRequest
 		err := json.Unmarshal(payload, &newPayrollRunRequest)
 		if err != nil {
-			formatter.Text(w, http.StatusBadRequest, "Failed to parse payroll run request")
+			formatter.Text(w, http.StatusBadRequest, "Failed to parse payroll run request"+err.Error())
 			return
 		}
 		if !newPayrollRunRequest.isValid() {

@@ -79,6 +79,10 @@ openssl req -new -newkey rsa:2048 -x509 -days 3650 -nodes -config dlv-cert.cfg -
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain dlv-cert.cer
 ```
 
+```shell
+$ xcode-select --install
+```
+
 INSTALL COMMAND
 
 ```shell

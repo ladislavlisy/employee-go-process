@@ -1,3 +1,6 @@
 package: github.com/ladislavlisy/example-go-pipeline
 import:
 - package: github.com/olekukonko/tablewriter
+- package: github.com/codegangsta/negroni
+- package: github.com/gorilla/mux
+- package: github.com/unrolled/render

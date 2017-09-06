@@ -65,6 +65,7 @@ INSTALL DELVE
 
 ```shell
 $ brew install go-delve/delve/delve
+$ brew unlink delve && brew install go-delve/delve/delve --HEAD
 ```
 
 INSTALL DELVE CERT

@@ -15,6 +15,16 @@ import (
 
 const (
 	fakePayrollRunsLocationResult = "/payrollruns/20170101"
+	fakePayrollRunsRequestBoy     = `{
+		"code": 20170101,
+		"year": 2017,
+		"month": 1,
+		"seq": 1,
+		"start_day": "2017-01-01",
+		"end_day": "2017-01-31",
+		"current": true,
+		"period_name": "January 2017"
+	  }`
 )
 
 var (
@@ -32,23 +42,7 @@ var _ = Describe("Service Payroll Runs", func() {
 			server := httptest.NewServer(http.HandlerFunc(createPayrollRunHandler(formatter, repo)))
 			defer server.Close()
 
-			// "code" : 20170101,
-			// "year" : 2017,
-			// "month" : 1,
-			// "seq" : 1,
-			// "start_day" : "2017-01-01",
-			// "end_day" : "2017-01-31",
-			// "current" : "true",
-			// "period_name" : "January 2017"
-
-			body := []byte("{\n  \"code\": 20170101," +
-				"\n  \"year\": 2017," +
-				"\n  \"month\": 1," +
-				"\n  \"seq\": 1," +
-				"\n	 \"start_day\": \"2017-01-01\"," +
-				"\n  \"end_day\": \"2017-01-31\"," +
-				"\n  \"current\": true," +
-				"\n  \"period_name\": \"January 2017\"\n}")
+			body := []byte(fakePayrollRunsRequestBoy)
 
 			req, err := http.NewRequest("POST", server.URL, bytes.NewBuffer(body))
 			Expect(err).To(BeNil(), "Error in creating POST request for createPayrollRunHandler")
@@ -75,7 +69,7 @@ var _ = Describe("Service Payroll Runs", func() {
 				Expect(len(loc[0])).To(Equal(len(fakePayrollRunsLocationResult)), "Location value does not contain code of new Payroll Run")
 			}
 
-			fmt.Printf("Payload: %s", string(payload))
+			fmt.Printf("\n--- TEST DATA:\nPayload: %s\n--- END TEST DATA\n", string(payload))
 		})
 	})
 })

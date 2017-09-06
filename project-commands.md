@@ -126,4 +126,5 @@ rm server.pass.key
 openssl req -new -key server.key -out server.csr
 openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain server.crt
+openssl rsa -des3 -in server.key -out enc_server.key
 ```

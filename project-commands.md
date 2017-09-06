@@ -104,3 +104,26 @@ brew install wercker-cli
 curl -L https://s3.amazonaws.com/downloads.wercker.com/cli/stable/darwin_amd64/wercker -o /usr/local/bin/wercker
 ```
 
+INSTALL CF CLI
+```shell
+Download the latest version of PCF Dev CLI plugin from Pivotal Network.
+
+Unzip the downloaded zip file:
+$ unzip pcfdev-VERSION-osx.zip
+
+Install the PCF Dev plugin:
+$ ./pcfdev-VERSION-osx
+
+Start PCF Dev:
+$ cf dev start
+```
+
+INSTALL CERTIFICATE
+```shell
+openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
+openssl rsa -passin pass:x -in server.pass.key -out server.key
+rm server.pass.key
+openssl req -new -key server.key -out server.csr
+openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain server.crt
+```

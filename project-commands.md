@@ -104,6 +104,13 @@ brew install wercker-cli
 curl -L https://s3.amazonaws.com/downloads.wercker.com/cli/stable/darwin_amd64/wercker -o /usr/local/bin/wercker
 ```
 
+INSTALL GINKGO TEST LIBS
+```shell
+go get github.com/onsi/ginkgo
+go get github.com/onsi/gomega
+go install github.com/onsi/ginkgo
+```
+
 INSTALL CF CLI
 ```shell
 Download the latest version of PCF Dev CLI plugin from Pivotal Network.

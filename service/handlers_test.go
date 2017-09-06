@@ -6,10 +6,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strings"
-	"testing"
 
 	"github.com/unrolled/render"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 const (
@@ -22,64 +23,59 @@ var (
 	})
 )
 
-func TestCreatePayrollRun(t *testing.T) {
-	client := &http.Client{}
-	repo := newInMemoryRepository()
-	server := httptest.NewServer(http.HandlerFunc(createPayrollRunHandler(formatter, repo)))
-	defer server.Close()
+var _ = Describe("Service Payroll Runs", func() {
 
-	// "code" : 20170101,
-	// "year" : 2017,
-	// "month" : 1,
-	// "seq" : 1,
-	// "start_day" : "2017-01-01",
-	// "end_day" : "2017-01-31",
-	// "current" : "true",
-	// "period_name" : "January 2017"
+	Describe("Create Payroll Run", func() {
+		It("should Successfuly Create Payroll Run", func() {
+			client := &http.Client{}
+			repo := newMapRepository()
+			server := httptest.NewServer(http.HandlerFunc(createPayrollRunHandler(formatter, repo)))
+			defer server.Close()
 
-	body := []byte("{\n  \"code\": 20170101," +
-		"\n  \"year\": 2017," +
-		"\n  \"month\": 1," +
-		"\n  \"seq\": 1," +
-		"\n	 \"start_day\": \"2017-01-01\"," +
-		"\n  \"end_day\": \"2017-01-31\"," +
-		"\n  \"current\": true," +
-		"\n  \"period_name\": \"January 2017\"\n}")
+			// "code" : 20170101,
+			// "year" : 2017,
+			// "month" : 1,
+			// "seq" : 1,
+			// "start_day" : "2017-01-01",
+			// "end_day" : "2017-01-31",
+			// "current" : "true",
+			// "period_name" : "January 2017"
 
-	req, err := http.NewRequest("POST", server.URL, bytes.NewBuffer(body))
-	if err != nil {
-		t.Errorf("Error in creating POST request for createPayrollRunHandler: %v", err)
-	}
-	req.Header.Add("Content-Type", "application/json")
+			body := []byte("{\n  \"code\": 20170101," +
+				"\n  \"year\": 2017," +
+				"\n  \"month\": 1," +
+				"\n  \"seq\": 1," +
+				"\n	 \"start_day\": \"2017-01-01\"," +
+				"\n  \"end_day\": \"2017-01-31\"," +
+				"\n  \"current\": true," +
+				"\n  \"period_name\": \"January 2017\"\n}")
 
-	res, err := client.Do(req)
-	if err != nil {
-		t.Errorf("Error in POST to createPayrollRunHandler: %v", err)
-	}
+			req, err := http.NewRequest("POST", server.URL, bytes.NewBuffer(body))
+			Expect(err).To(BeNil(), "Error in creating POST request for createPayrollRunHandler")
 
-	defer res.Body.Close()
+			req.Header.Add("Content-Type", "application/json")
 
-	payload, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Errorf("Error parsing response body: %v", err)
-	}
+			res, err := client.Do(req)
+			Expect(err).To(BeNil(), "Error in POST to createPayrollRunHandler")
 
-	if res.StatusCode != http.StatusCreated {
-		t.Errorf("Expected response status 201, received %s", res.Status)
-	}
+			defer res.Body.Close()
 
-	loc, headerOk := res.Header["Location"]
+			payload, err := ioutil.ReadAll(res.Body)
+			Expect(err).To(BeNil(), "Error parsing response body")
 
-	if !headerOk {
-		t.Error("Location header is not set")
-	} else {
-		if !strings.Contains(loc[0], "/payrollruns/") {
-			t.Errorf("Location header should contain '/payrollruns/'")
-		}
-		if len(loc[0]) != len(fakePayrollRunsLocationResult) {
-			t.Errorf("Location value does not contain code of new Payroll Run")
-		}
-	}
+			Expect(res.StatusCode).To(Equal(http.StatusCreated), "Expected response status 201")
 
-	fmt.Printf("Payload: %s", string(payload))
-}
+			loc, headerOk := res.Header["Location"]
+
+			Expect(headerOk).To(BeTrue(), "Location header is not set")
+
+			if headerOk {
+				Expect(loc[0]).To(ContainSubstring("/payrollruns/"), "Location header should contain '/payrollruns/'")
+
+				Expect(len(loc[0])).To(Equal(len(fakePayrollRunsLocationResult)), "Location value does not contain code of new Payroll Run")
+			}
+
+			fmt.Printf("Payload: %s", string(payload))
+		})
+	})
+})

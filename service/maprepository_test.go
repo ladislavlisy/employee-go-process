@@ -2,102 +2,97 @@ package service
 
 import (
 	"strconv"
-	"testing"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	payroll "github.com/ladislavlisy/employee-go-process/payroll"
 )
 
-func TestAddPayrollRunsShowsUpInMapRepository(t *testing.T) {
-	payrollRun := payroll.NewPayrollRun(2017, 1, 1, "2017-01-01", "2017-01-31", true)
+var _ = Describe("Map Repository", func() {
 
-	repo := newMapRepository()
-	err := repo.addPayrollRun(payrollRun)
-	if err != nil {
-		t.Error("Got an error adding a payroll run to repository, should not have.")
-	}
+	Describe("Add Payroll Run To Map Repository", func() {
+		It("should ShowUp New Payroll Run In Repository", func() {
+			payrollRun := payroll.NewPayrollRun(2017, 1, 1, "2017-01-01", "2017-01-31", true)
 
-	payrollRuns, err := repo.getPayrollRuns()
-	if err != nil {
-		t.Errorf("Unexpected error in getPayrollRuns(): %s", err)
-	}
-	if len(payrollRuns) != 1 {
-		t.Errorf("Expected to have 1 payroll run in the repository, got %d", len(payrollRuns))
-	}
+			repo := newMapRepository()
+			err := repo.addPayrollRun(payrollRun)
 
-	if payrollRuns[0].Year != 2017 {
-		t.Errorf("Year should have been 2017, got %d", payrollRuns[0].Year)
-	}
-	if payrollRuns[0].Month != 1 {
-		t.Errorf("Month should have been 1, got %d", payrollRuns[0].Month)
-	}
-	if payrollRuns[0].Seq != 1 {
-		t.Errorf("Sequence should have been 1, got %d", payrollRuns[0].Seq)
-	}
-}
+			Expect(err).To(BeNil(), "Got an error adding a payroll run to repository, should not have.")
 
-func TestGetPayrollRunRetrievesProperPayrollRunInMapRepository(t *testing.T) {
-	payrollRun := payroll.NewPayrollRun(2017, 1, 1, "2017-01-01", "2017-01-31", true)
+			payrollRuns, err := repo.getPayrollRuns()
+			Expect(err).To(BeNil(), "Unexpected error in getPayrollRuns()", err)
 
-	repo := newMapRepository()
-	err := repo.addPayrollRun(payrollRun)
-	if err != nil {
-		t.Error("Got an error adding a match to repository, should not have.")
-	}
+			Expect(len(payrollRuns)).To(Equal(1), "Expected to have 1 payroll run in the repository")
 
-	strCode := strconv.Itoa(int(payrollRun.Code))
+			Expect(payrollRuns[0].Year).To(Equal(int32(2017)), "Year should have been 2017")
 
-	target, err := repo.getPayrollRun(strCode)
-	if err != nil {
-		t.Errorf("Got an error when retrieving match from repo instead of success. Err: %s", err.Error())
-	}
+			Expect(payrollRuns[0].Month).To(Equal(int32(1)), "Month should have been 1")
 
-	if target.StartDay != payroll.NewDate(2017, 1, 1) {
-		t.Errorf("Got the wrong start day. Expected 2017-01-01, got %s", target.StartDay.Format("2006-01-02"))
-	}
-}
+			Expect(payrollRuns[0].Seq).To(Equal(int32(1)), "Sequence should have been 1")
+		})
+	})
 
-func TestNewMapRepositoryIsEmpty(t *testing.T) {
-	repo := newMapRepository()
+	Describe("Get Payroll Run From Map Repository", func() {
+		It("should Retrieve Proper Payroll Run In Repository", func() {
+			payrollRun := payroll.NewPayrollRun(2017, 1, 1, "2017-01-01", "2017-01-31", true)
 
-	payrollRuns, err := repo.getPayrollRuns()
-	if err != nil {
-		t.Errorf("Unexpected error in getPayrollRuns(): %s", err)
-	}
-	if len(payrollRuns) != 0 {
-		t.Errorf("Expected to have 0 payroll run in the repository, got %d", len(payrollRuns))
-	}
-}
+			repo := newMapRepository()
+			err := repo.addPayrollRun(payrollRun)
 
-func TestUpdatePayrollRunInMapRepository(t *testing.T) {
-	payrollTmp := payroll.NewPayrollRun(2016, 1, 1, "2016-01-01", "2016-01-31", false)
-	payrollRun := payroll.NewPayrollRun(2017, 1, 1, "2017-01-01", "2017-01-31", true)
+			Expect(err).To(BeNil(), "Got an error adding a payroll run to repository, should not have.")
 
-	repo := newMapRepository()
-	err := repo.addPayrollRun(payrollTmp)
-	if err != nil {
-		t.Errorf("Error adding payroll run: %s", err)
-	}
-	err = repo.addPayrollRun(payrollRun)
-	if err != nil {
-		t.Errorf("Error adding payroll run: %s", err)
-	}
+			strCode := strconv.Itoa(int(payrollRun.Code))
 
-	strCode := strconv.Itoa(int(payrollRun.Code))
+			target, err := repo.getPayrollRun(strCode)
+			Expect(err).To(BeNil(), "Got an error when retrieving match from repo instead of success.")
 
-	payrollRun.PeriodName = "Xanuary 2017"
-	err = repo.updatePayrollRun(strCode, payrollRun)
-	if err != nil {
-		t.Errorf("Error updating payroll run: %s", err)
-	}
+			Expect(target.StartDay).To(Equal(payroll.NewDate(2017, 1, 1)), "Got the wrong start day. Expected 2017-01-01")
+		})
+	})
 
-	found, err := repo.getPayrollRun(strCode)
-	if err != nil {
-		t.Errorf("Error retrieving updated payroll run: %s", err)
-	}
-	if found.Year != payrollRun.Year || found.Month != payrollRun.Month || found.Seq != payrollRun.Seq {
-		t.Errorf("Retrieved incorrect payroll run:\nexpected %+v\nreceived %+v", payrollRun, found)
-	}
-	if found.PeriodName != "Xanuary 2017" {
-		t.Errorf("Update failed: expected %s; received %s", "Xanuary 2017", found.PeriodName)
-	}
-}
+	Describe("Empty Map Repository", func() {
+		It("should Get No Payroll Run In Repository", func() {
+
+			repo := newMapRepository()
+
+			payrollRuns, err := repo.getPayrollRuns()
+			Expect(err).To(BeNil(), "Unexpected error in getPayrollRuns()")
+
+			Expect(len(payrollRuns)).To(Equal(0), "Expected to have 0 payroll run in the repository")
+		})
+	})
+
+	Describe("Update Payroll Run In Map Repository", func() {
+		It("should Get Updated Payroll Run From Repository", func() {
+
+			payrollTmp := payroll.NewPayrollRun(2016, 1, 1, "2016-01-01", "2016-01-31", false)
+			payrollRun := payroll.NewPayrollRun(2017, 1, 1, "2017-01-01", "2017-01-31", true)
+
+			repo := newMapRepository()
+			err := repo.addPayrollRun(payrollTmp)
+
+			Expect(err).To(BeNil(), "Error adding payroll run")
+
+			err = repo.addPayrollRun(payrollRun)
+
+			Expect(err).To(BeNil(), "Error adding payroll run")
+
+			strCode := strconv.Itoa(int(payrollRun.Code))
+
+			payrollRun.PeriodName = "Xanuary 2017"
+			err = repo.updatePayrollRun(strCode, payrollRun)
+
+			Expect(err).To(BeNil(), "Error updating payroll run")
+
+			found, err := repo.getPayrollRun(strCode)
+			Expect(err).To(BeNil(), "Error retrieving updated payroll run")
+
+			Expect(found.Year).To(Equal(int32(2017)), "Year should have been 2017")
+
+			Expect(found.Month).To(Equal(int32(1)), "Month should have been 1")
+
+			Expect(found.Seq).To(Equal(int32(1)), "Sequence should have been 1")
+		})
+	})
+})

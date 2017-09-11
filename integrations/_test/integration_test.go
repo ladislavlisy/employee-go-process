@@ -6,181 +6,179 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"testing"
+	"strconv"
 
 	"github.com/cloudfoundry-community/go-cfenv"
-	. "github.com/cloudnativego/gogo-service/service"
+	. "github.com/ladislavlisy/employee-go-process/service"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var (
-	appEnv, _       = cfenv.Current()
-	server          = NewServer(appEnv)
-	firstMatchBody  = []byte("{\n  \"gridsize\": 19,\n  \"playerWhite\": \"L'Carpetron Dookmarriott\",\n  \"playerBlack\": \"Hingle McCringleberry\"\n}")
-	secondMatchBody = []byte("{\n  \"gridsize\": 19,\n  \"playerWhite\": \"Devoin Shower-Handel\",\n  \"playerBlack\": \"J'Dinkalage Morgoone\"\n}")
+	appEnv, _           = cfenv.Current()
+	server              = NewServer(appEnv)
+	firstPayrollRunBody = []byte(`{
+		"code": 20170101,
+		"year": 2017,
+		"month": 1,
+		"seq": 1,
+		"start_day": "2017-01-01",
+		"end_day": "2017-01-31",
+		"current": false,
+		"period_name": "January 2017"
+	  }`)
+	secondPayrollRunBody = []byte(`{
+		"code": 20170202,
+		"year": 2017,
+		"month": 2,
+		"seq": 2,
+		"start_day": "2017-02-01",
+		"end_day": "2017-02-28",
+		"current": true,
+		"period_name": "February 2017"
+	  }`)
 )
 
-func TestIntegration(t *testing.T) {
-	// Get empty match list
-	emptyMatches, err := getMatchList(t)
-	if len(emptyMatches) > 0 {
-		t.Errorf("Expected get match list to return an empty array; received %d", len(emptyMatches))
-	}
+var _ = Describe("Integration test", func() {
 
-	// Add first match
-	matchResponse, err := addMatch(t, firstMatchBody)
-	if matchResponse.PlayerBlack != "Hingle McCringleberry" {
-		t.Errorf("Didn't get expected black stone player name from creation, got '%s'", matchResponse.PlayerBlack)
-	}
+	Describe("Working with real MongoDb Repository", func() {
+		It("should Insert and Read Payroll Runs In Repository", func() {
+			// Get empty payrollRun list
+			emptyPayrollRuns, err := getPayrollRunList()
 
-	matches, err := getMatchList(t)
-	if err != nil {
-		t.Errorf("Error getting match list, %v", err)
-	}
-	if len(matches) != 1 {
-		t.Errorf("Expected 1 active match, got %d", len(matches))
-	}
-	if matches[0].PlayerWhite != "L'Carpetron Dookmarriott" {
-		t.Errorf("Player white name was wrong, got %s", matches[0].PlayerWhite)
-	}
+			Expect(len(emptyPayrollRuns)).To(Equal(0), "Expected get payrollRun list to return an empty array.")
 
-	// Add second match
-	matchResponse, err = addMatch(t, secondMatchBody)
-	if matchResponse.PlayerBlack != "J'Dinkalage Morgoone" {
-		t.Errorf("Didn't get expected black stone player name from creation, got '%s'", matchResponse.PlayerBlack)
-	}
+			// Add first payrollRun
+			payrollRunResponse, err := addPayrollRun(firstPayrollRunBody)
 
-	matches, err = getMatchList(t)
-	if err != nil {
-		t.Errorf("Error getting match list, %v", err)
-	}
-	if len(matches) != 2 {
-		t.Errorf("Expected 2 active match, got %d", len(matches))
-	}
-	if matches[1].PlayerWhite != "Devoin Shower-Handel" {
-		t.Errorf("Player white name was wrong, got %s", matches[1].PlayerWhite)
-	}
+			Expect(payrollRunResponse.Code).To(Equal(int32(20170101)), "Didn't get expected payroll run code from creation.")
 
-	// Get match details (first match)
-	firstMatch, err := getMatchDetails(t, matches[0].ID)
-	if firstMatch.GridSize != 19 {
-		t.Errorf("Expected match gridsize to be 19; received %d", firstMatch.GridSize)
-	}
+			payrollRuns, err := getPayrollRunList()
 
-	secondMatch := matches[1]
+			Expect(err).To(BeNil(), "Error getting payrollRun list")
+			Expect(len(payrollRuns)).To(Equal(1), "Expected 1 active payroll run.")
+			Expect(payrollRuns[0].Code).To(Equal(int32(20170101)), "Payroll run code was wrong.")
 
-	// Add Move
-	addMoveToMatch(t, firstMatch.ID, []byte("{\n  \"player\": 2,\n  \"position\": {\n    \"x\": 3,\n    \"y\": 10\n  }\n}"))
+			// Add second payrollRun
+			payrollRunResponse, err = addPayrollRun(secondPayrollRunBody)
 
-	updatedFirstMatch, err := getMatchDetails(t, firstMatch.ID)
-	if err != nil {
-		t.Errorf("Error getting match details, %v", err)
-	}
-	if updatedFirstMatch.GameBoard[3][10] != 2 {
-		t.Errorf("Expected gameboard position 3,10 to be 2, received: %d", updatedFirstMatch.GameBoard[3][10])
-	}
+			Expect(payrollRunResponse.Code).To(Equal(int32(20170202)), "Didn't get expected payroll run code from creation.")
 
-	originalSecondMatch, _ := getMatchDetails(t, secondMatch.ID)
-	if originalSecondMatch.GameBoard[3][10] != 0 {
-		t.Errorf("Expected gameboard position 3,10 to be 0, received: %d", originalSecondMatch.GameBoard[3][10])
-	}
+			payrollRuns, err = getPayrollRunList()
 
-	addMoveToMatch(t, secondMatch.ID, []byte("{\n  \"player\": 1,\n  \"position\": {\n    \"x\": 3,\n    \"y\": 10\n  }\n}"))
+			Expect(err).To(BeNil(), "Error getting payrollRun list")
+			Expect(len(payrollRuns)).To(Equal(2), "Expected 2 active payroll run.")
+			Expect(payrollRuns[1].Code).To(Equal(int32(20170202)), "Payroll run code was wrong.")
 
-	updatedFirstMatch, _ = getMatchDetails(t, firstMatch.ID)
-	if updatedFirstMatch.GameBoard[3][10] != 2 {
-		t.Errorf("Expected gameboard position 3,10 to be 2, received: %d", updatedFirstMatch.GameBoard[3][10])
-	}
+			strFirstRunCode := strconv.Itoa(int(payrollRuns[0].Code))
+			// Get payrollRun details (first payrollRun)
+			firstPayrollRun, err := getPayrollRunDetails(strFirstRunCode)
 
-	updatedSecondMatch, _ := getMatchDetails(t, secondMatch.ID)
-	if updatedSecondMatch.GameBoard[3][10] != 1 {
-		t.Errorf("Expected gameboard position 3,10 to be 1, received: %d", updatedSecondMatch.GameBoard[3][10])
-	}
-}
+			Expect(firstPayrollRun.Code).To(Equal(int32(20170101)), "Expected payroll run code to be 20170101.")
+
+			secondPayrollRun := payrollRuns[1]
+
+			strSecondRunCode := strconv.Itoa(int(payrollRuns[0].Code))
+
+			// Add Move
+			addMoveToPayrollRun(strFirstRunCode, []byte("{\n  \"player\": 2,\n  \"position\": {\n    \"x\": 3,\n    \"y\": 10\n  }\n}"))
+
+			updatedFirstPayrollRun, err := getPayrollRunDetails(strFirstRunCode)
+			Expect(err).To(BeNil(), "Error getting payrollRun details")
+
+			Expect(updatedFirstPayrollRun.Code).To(Equal(int32(20170101)), "Expected payroll run data to be X.")
+
+			originalSecondPayrollRun, _ := getPayrollRunDetails(strSecondRunCode)
+
+			Expect(originalSecondPayrollRun.Code).To(Equal(int32(20170202)), "Expected payroll run data to be X.")
+
+			addMoveToPayrollRun(strSecondRunCode, []byte("{\n  \"player\": 1,\n  \"position\": {\n    \"x\": 3,\n    \"y\": 10\n  }\n}"))
+
+			updatedFirstPayrollRun, _ = getPayrollRunDetails(strFirstRunCode)
+
+			Expect(updatedFirstPayrollRun.Code).To(Equal(int32(20170101)), "Expected payroll run data to be X.")
+
+			updatedSecondPayrollRun, _ := getPayrollRunDetails(strSecondRunCode)
+
+			Expect(updatedSecondPayrollRun.Code).To(Equal(int32(20170202)), "Expected payroll run data to be X.")
+		})
+	})
+})
 
 // ----------------- Utility Functions ------------
 
-func getMatchList(t *testing.T) (matches []newMatchResponse, err error) {
-	getMatchListRequest, _ := http.NewRequest("GET", "/matches", nil)
+func getPayrollRunList() (payrollRuns []newPayrollRunResponse, err error) {
+	getPayrollRunListRequest, _ := http.NewRequest("GET", "/payrollRuns", nil)
 	recorder := httptest.NewRecorder()
-	server.ServeHTTP(recorder, getMatchListRequest)
-	matches = make([]newMatchResponse, 0)
-	err = json.Unmarshal(recorder.Body.Bytes(), &matches)
-	if err != nil {
-		t.Errorf("Error unmarshaling match list, %v", err)
-	} else {
-		if recorder.Code != 200 {
-			t.Errorf("Expected match list code to be 200, got %d", recorder.Code)
-		} else {
-			fmt.Println("\tQueried Match List OK")
-		}
-	}
+	server.ServeHTTP(recorder, getPayrollRunListRequest)
+	payrollRuns = make([]newPayrollRunResponse, 0)
+	err = json.Unmarshal(recorder.Body.Bytes(), &payrollRuns)
+
+	Expect(err).To(BeNil(), "Error unmarshaling payroll run list.")
+
+	Expect(recorder.Code).To(Equal(200), "Expected payroll run list code to be 200.")
 	return
 }
 
-func addMatch(t *testing.T, body []byte) (reply newMatchResponse, err error) {
+func addPayrollRun(body []byte) (reply newPayrollRunResponse, err error) {
 	recorder := httptest.NewRecorder()
-	createMatchRequest, _ := http.NewRequest("POST", "/matches", bytes.NewBuffer(body))
-	server.ServeHTTP(recorder, createMatchRequest)
-	if recorder.Code != 201 {
-		t.Errorf("Error creating new match, expected 201 code, got %d", recorder.Code)
-	}
-	var matchResponse newMatchResponse
-	err = json.Unmarshal(recorder.Body.Bytes(), &matchResponse)
-	if err != nil {
-		t.Errorf("Error unmarshaling new match response: %v", err)
-	} else {
-		fmt.Println("\tAdded Match OK")
-	}
-	reply = matchResponse
+	createPayrollRunRequest, _ := http.NewRequest("POST", "/payrollRuns", bytes.NewBuffer(body))
+	server.ServeHTTP(recorder, createPayrollRunRequest)
+
+	Expect(recorder.Code).To(Equal(201), "Error creating new payroll run, expected 201 code.")
+
+	var payrollRunResponse newPayrollRunResponse
+	err = json.Unmarshal(recorder.Body.Bytes(), &payrollRunResponse)
+
+	Expect(err).To(BeNil(), "Error unmarshaling new payroll run response.")
+
+	reply = payrollRunResponse
 	return
 }
 
-func getMatchDetails(t *testing.T, ID string) (match matchDetailsResponse, err error) {
+func getPayrollRunDetails(Code string) (payrollRun payrollRunDetailsResponse, err error) {
 	recorder := httptest.NewRecorder()
-	matchURL := fmt.Sprintf("/matches/%s", ID)
-	getMatchDetailsRequest, _ := http.NewRequest("GET", matchURL, nil)
-	server.ServeHTTP(recorder, getMatchDetailsRequest)
-	if recorder.Code != 200 {
-		t.Errorf("Error getting match details: %d", recorder.Code)
-	}
-	err = json.Unmarshal(recorder.Body.Bytes(), &match)
-	if err != nil {
-		t.Errorf("Error unmarshaling match details: %v", err)
-	} else {
-		fmt.Println("\tQueried Match Details OK")
-	}
+	payrollRunURL := fmt.Sprintf("/payrollRuns/%s", Code)
+	getPayrollRunDetailsRequest, _ := http.NewRequest("GET", payrollRunURL, nil)
+	server.ServeHTTP(recorder, getPayrollRunDetailsRequest)
+
+	Expect(recorder.Code).To(Equal(200), "Error getting payroll run details.")
+
+	err = json.Unmarshal(recorder.Body.Bytes(), &payrollRun)
+
+	Expect(err).To(BeNil(), "Error unmarshaling payroll run details.")
 	return
 }
 
-func addMoveToMatch(t *testing.T, ID string, body []byte) {
+func addMoveToPayrollRun(Code string, body []byte) {
 	recorder := httptest.NewRecorder()
-	requestString := fmt.Sprintf("/matches/%s/moves", ID)
-	matchMove := bytes.NewBuffer(body)
-	addMoveRequest, _ := http.NewRequest("POST", requestString, matchMove)
+	requestString := fmt.Sprintf("/payrollRuns/%s/moves", Code)
+	payrollRunMove := bytes.NewBuffer(body)
+	addMoveRequest, _ := http.NewRequest("POST", requestString, payrollRunMove)
 	server.ServeHTTP(recorder, addMoveRequest)
-	if recorder.Code != 201 {
-		t.Errorf("Error adding move to match: %d", recorder.Code)
-	} else {
-		fmt.Println("\tAdded Move to Match OK")
-	}
+
+	Expect(recorder.Code).To(Equal(201), "Error adding data to payroll run.")
 	return
 }
 
-type newMatchResponse struct {
-	ID          string `json:"id"`
-	StartedAt   int64  `json:"started_at"`
-	GridSize    int    `json:"gridsize"`
-	PlayerWhite string `json:"playerWhite"`
-	PlayerBlack string `json:"playerBlack"`
-	Turn        int    `json:"turn,omitempty"`
+type newPayrollRunResponse struct {
+	Code       int32  `json:"code"`
+	Year       int32  `json:"year"`
+	Month      int32  `json:"month"`
+	Seq        int32  `json:"seq"`
+	StartDay   string `json:"start_day"`
+	EndDay     string `json:"end_day"`
+	Current    bool   `json:"current"`
+	PeriodName string `json:"period_name"`
 }
 
-type matchDetailsResponse struct {
-	ID          string   `json:"id"`
-	StartedAt   int64    `json:"started_at"`
-	GridSize    int      `json:"gridsize"`
-	PlayerWhite string   `json:"playerWhite"`
-	PlayerBlack string   `json:"playerBlack"`
-	Turn        int      `json:"turn,omitempty"`
-	GameBoard   [][]byte `json:"gameboard"`
+type payrollRunDetailsResponse struct {
+	Code       int32  `json:"code"`
+	Year       int32  `json:"year"`
+	Month      int32  `json:"month"`
+	Seq        int32  `json:"seq"`
+	StartDay   string `json:"start_day"`
+	EndDay     string `json:"end_day"`
+	Current    bool   `json:"current"`
+	PeriodName string `json:"period_name"`
 }

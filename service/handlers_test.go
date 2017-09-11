@@ -15,7 +15,7 @@ import (
 
 const (
 	fakePayrollRunsLocationResult = "/payrollruns/20170101"
-	fakePayrollRunsRequestBoy     = `{
+	fakePayrollRunsRequestBody    = `{
 		"code": 20170101,
 		"year": 2017,
 		"month": 1,
@@ -42,7 +42,7 @@ var _ = Describe("Service Payroll Runs", func() {
 			server := httptest.NewServer(http.HandlerFunc(createPayrollRunHandler(formatter, repo)))
 			defer server.Close()
 
-			body := []byte(fakePayrollRunsRequestBoy)
+			body := []byte(fakePayrollRunsRequestBody)
 
 			req, err := http.NewRequest("POST", server.URL, bytes.NewBuffer(body))
 			Expect(err).To(BeNil(), "Error in creating POST request for createPayrollRunHandler")

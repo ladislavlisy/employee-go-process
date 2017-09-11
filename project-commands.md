@@ -97,6 +97,7 @@ $ brew install go
 ```
 
 INSTALL WERCKER CLI
+
 ```shell
 brew tap wercker/wercker
 brew install wercker-cli
@@ -105,6 +106,7 @@ curl -L https://s3.amazonaws.com/downloads.wercker.com/cli/stable/darwin_amd64/w
 ```
 
 INSTALL GINKGO TEST LIBS
+
 ```shell
 go get github.com/onsi/ginkgo
 go get github.com/onsi/gomega
@@ -112,6 +114,7 @@ go install github.com/onsi/ginkgo
 ```
 
 INSTALL CF CLI
+
 ```shell
 Download the latest version of PCF Dev CLI plugin from Pivotal Network.
 
@@ -126,6 +129,7 @@ $ cf dev start
 ```
 
 INSTALL CERTIFICATE
+
 ```shell
 openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
 openssl rsa -passin pass:x -in server.pass.key -out server.key
@@ -134,4 +138,52 @@ openssl req -new -key server.key -out server.csr
 openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain server.crt
 openssl rsa -des3 -in server.key -out enc_server.key
+```
+
+INSTALL MONGODB
+
+```
+use admin
+db.createUser(
+  {
+    user: "mbpUserAdmin",
+    pwd: "pingu123",
+    roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+  }
+)
+
+mongo --port 27017 -u "mbpUserAdmin" -p "pingu123" --authenticationDatabase "admin"
+
+mongo --port 27017
+
+use admin
+> db.auth("mbpUserAdmin", "pingu123")
+
+use emparol
+db.createUser(
+  {
+    user: "mbpTester",
+    pwd: "goping123",
+    roles: [ { role: "readWrite", db: "emparol" } ]
+  }
+)
+
+mongo --port 27017 -u "mbpTester" -p "goping123" --authenticationDatabase "emparol"
+
+quit()
+
+mongodb://<dbuser>:<dbpassword>@ds133004.mlab.com:33004/emptest
+{
+    "_id": "emptest.labUserTester",
+    "user": "labUserTester",
+    "db": "emptest",
+    "roles": [
+        {
+            "role": "dbOwner",
+            "db": "emptest"
+        }
+    ]
+}
+XEs-RVb-gb4-P93
+
 ```
